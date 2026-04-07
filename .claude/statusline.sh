@@ -142,8 +142,13 @@ if [ -n "$RL5_RESET" ]; then
   [ -n "$R5" ] && RESET_PARTS+=("5h@${R5}")
 fi
 if [ -n "$RL7_RESET" ]; then
-  R7=$(format_reset "$RL7_RESET")
-  [ -n "$R7" ] && RESET_PARTS+=("7d@${R7}")
+  R7_EPOCH="${RL7_RESET%%.*}"
+  if [[ "$R7_EPOCH" =~ ^[0-9]+$ ]]; then
+    R7=$(date -d "@$R7_EPOCH" '+%m/%d %H:%M' 2>/dev/null \
+      || date -r "$R7_EPOCH" '+%m/%d %H:%M' 2>/dev/null \
+      || python3 -c "import datetime; print(datetime.datetime.fromtimestamp($R7_EPOCH).strftime('%m/%d %H:%M'))" 2>/dev/null)
+    [ -n "$R7" ] && RESET_PARTS+=("7d@${R7}")
+  fi
 fi
 
 if [ ${#RESET_PARTS[@]} -gt 0 ]; then
