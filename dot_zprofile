@@ -45,7 +45,9 @@ export PATH="$PATH:${GOPATH}/bin:${GOROOT}/bin"
 # ============================================================
 # 언어 런타임 — Java
 # ============================================================
-export JAVA_HOME=$(/usr/libexec/java_home -v17)
+if /usr/libexec/java_home -v17 >/dev/null 2>&1; then
+  export JAVA_HOME=$(/usr/libexec/java_home -v17)
+fi
 
 # ============================================================
 # 언어 런타임 — Rust
