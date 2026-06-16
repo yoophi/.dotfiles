@@ -1,0 +1,118 @@
+# ============================================================
+# Powerlevel10k Instant Prompt (반드시 파일 최상단에 위치)
+# ============================================================
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# ============================================================
+# Oh My Zsh 설정
+# ============================================================
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="robbyrussell"  # powerlevel10k가 아래에서 덮어씀
+plugins=(git vi-mode aws git-extra-commands fzf)
+source $ZSH/oh-my-zsh.sh
+
+# ============================================================
+# Powerlevel10k 테마
+# ============================================================
+source /opt/homebrew/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# ============================================================
+# 셸 도구 초기화 — 버전 관리자 (셸 hook 등록)
+# ============================================================
+eval "$(pyenv init -)"
+eval "$(rbenv init -)"
+
+# mise — 범용 런타임 버전 관리자
+eval "$($HOME/.local/bin/mise activate zsh)"
+
+# nvm은 PATH 조작이 모두 끝난 파일 맨 끝에서 로드한다 (아래 참고).
+
+# ============================================================
+# 셸 도구 초기화 — 유틸리티 (direnv, zoxide, fzf)
+# ============================================================
+eval "$(direnv hook zsh)"
+eval "$(zoxide init zsh)"
+source <(fzf --zsh)
+
+# ============================================================
+# 셸 도구 초기화 — SDKMAN / GVM
+# ============================================================
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+[[ -s "$HOME/.gvm/scripts/gvm" ]] && source "$HOME/.gvm/scripts/gvm"
+
+# ============================================================
+# Java 버전 전환 함수
+# ============================================================
+jdk() {
+  version=$1
+  export JAVA_HOME=$(/usr/libexec/java_home -v"$version")
+  java -version
+}
+
+# ============================================================
+# Alias — 에디터
+# ============================================================
+alias vim="nvim"
+alias vi="nvim"
+alias vimdiff="nvim -d"
+
+# ============================================================
+# Alias — 디렉토리 이동
+# ============================================================
+alias ph="cd ~/payhereinc"
+alias phpoc="cd ~/payhereinc/poc"
+alias pc='f() { [[ -z "${1}" ]] && cd ~/payhereinc/@pos-connector/main || cd ~/payhereinc/@pos-connector/$1 }; f'
+alias poc='f() { [[ -z "${1}" ]] && cd ~/poc || cd ~/poc/$1 }; f'
+alias today='f() { take ~/"${1}/$(date +%F)"}; f'
+alias t='f() { take "./$(date +%F)" }; f'
+alias j='f() { cd ~/private/private-zk; vim ./journals/$(date +%Y_%m_%d).md }; f'
+
+# ============================================================
+# Alias — 유틸리티
+# ============================================================
+alias tree='tree -I node_modules'
+alias openports="lsof -PiTCP -sTCP:LISTEN"
+alias portkill='f() { lsof -i ${1} | tail -n +2 | awk "{ print $2 }" | xargs kill }; f'
+function cdtmp() { cd "$(mktemp -d)" }
+alias openclaw='ssh nas.yoophi.dev -p 3022 -t /opt/homebrew/opt/node@22/bin/node /opt/homebrew/bin/openclaw tui'
+
+# ============================================================
+# Alias — Claude Code
+# ============================================================
+alias cc='claude'
+alias cr='claude --resume'
+alias ccd='claude --dangerously-skip-permissions'
+alias ccdr='claude --dangerously-skip-permissions --resume'
+alias work='cd ~/work && claude --dangerously-skip-permissions -r work'
+
+# ============================================================
+# codex
+# ============================================================
+alias codex-yolo='npx @openai/codex@latest --dangerously-bypass-approvals-and-sandbox'
+
+# ============================================================
+# ghostty
+# ============================================================
+alias gt-prod='ghostty --background=4a0000 &'
+alias gt-dev='ghostty --background=003355 &'
+
+# ============================================================
+# IDE 통합
+# ============================================================
+[[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
+alias p='cd /Users/yoophi/private'
+
+# ============================================================
+# nvm — Node.js 버전 관리자
+# 모든 PATH 조작(sdkman/gvm/antigravity 등) 이후에 로드해
+# nvm의 node/npm이 항상 PATH 최우선이 되도록 보장한다.
+# ============================================================
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+nvm use default >/dev/null 2>&1

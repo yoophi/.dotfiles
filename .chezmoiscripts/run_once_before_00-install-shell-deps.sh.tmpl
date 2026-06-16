@@ -1,0 +1,26 @@
+#!/bin/sh
+set -eu
+
+if ! command -v brew >/dev/null 2>&1; then
+  echo "Homebrew is not installed; skipping package bootstrap." >&2
+  exit 0
+fi
+
+brew install \
+  chezmoi \
+  neovim \
+  emacs \
+  zsh \
+  powerlevel10k \
+  fzf \
+  zoxide \
+  direnv \
+  pyenv \
+  rbenv \
+  mise
+
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+  RUNZSH=no CHSH=no KEEP_ZSHRC=yes \
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
+

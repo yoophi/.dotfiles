@@ -1,24 +1,28 @@
 # dotfiles
 
-개인 설정 파일 및 유틸리티 스크립트 모음.
+Personal dotfiles managed by [chezmoi](https://www.chezmoi.io/).
 
-## 구조
+## Managed files
 
+- `~/.zshrc`
+- `~/.zprofile`
+- `~/.zshenv`
+- `~/.p10k.zsh`
+- `~/.config/nvim`
+- `~/.emacs.d/init.el`
+
+Generated package directories, caches, local history, and secret files are intentionally not tracked.
+
+## Restore on a new Mac
+
+```sh
+brew install chezmoi
+chezmoi init git@github.com:yoophi/dotfiles.git
+chezmoi diff
+chezmoi apply
 ```
-.claude/
-  statusline.sh   # Claude Code 상태줄 스크립트 (plain text, ASCII bar)
-bin/
-  sandbox.sh      # 날짜별 sandbox 디렉토리 생성 후 이동
-```
 
-## 설치
+If the repository redirects to `yoophi/.dotfiles`, that is expected for the current GitHub repo.
 
-심볼릭 링크로 연결:
+Secrets are expected to live in `~/.secrets`, which is sourced by `~/.zprofile` but not tracked here.
 
-```bash
-# Claude Code statusline
-ln -sf ~/private/.dotfiles/.claude/statusline.sh ~/.claude/statusline.sh
-
-# bin 스크립트를 PATH에 추가하거나 개별 링크
-ln -sf ~/private/.dotfiles/bin/sandbox.sh ~/bin/sandbox.sh
-```
