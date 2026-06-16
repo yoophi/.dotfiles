@@ -46,9 +46,25 @@
 
 ;;; 5. 패키지별 설정
 
-;; 새 환경에서 아카이브 캐시(elpa/archives/)가 없으면 한 번만 갱신.
-;; 캐시가 있으면 건너뛰므로 매 시작마다 네트워크를 타지 않는다.
-(unless package-archive-contents
+;; MELPA snapshot tarball은 archive cache보다 먼저 사라질 수 있다.
+;; package install 시 stale URL을 잡지 않도록 archive가 오래되면 갱신한다.
+(defvar my/package-archive-refresh-interval (* 6 60 60))
+
+(defun my/package-archive-stale-p ()
+  "Return non-nil when package archive metadata should be refreshed."
+  (let* ((archive-dir (expand-file-name "archives" package-user-dir))
+         (files (and (file-directory-p archive-dir)
+                     (directory-files-recursively archive-dir "\\`archive-contents\\'")))
+         (oldest (car (sort (mapcar #'file-attribute-modification-time
+                                    (mapcar #'file-attributes files))
+                            #'time-less-p))))
+    (or (null files)
+        (null oldest)
+        (> (float-time (time-subtract (current-time) oldest))
+           my/package-archive-refresh-interval))))
+
+(when (or (null package-archive-contents)
+          (my/package-archive-stale-p))
   (package-refresh-contents))
 
 (use-package evil
