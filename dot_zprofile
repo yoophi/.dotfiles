@@ -17,7 +17,6 @@ export EDITOR=/opt/homebrew/bin/nvim
 # ============================================================
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
-export PATH="$HOME/.rbenv/bin:$PATH"
 export PATH="$HOME/.bun/bin:$PATH"
 export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
 export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
@@ -31,9 +30,9 @@ export PATH="$PATH:$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
 export PATH="$PATH:/Applications/Obsidian.app/Contents/MacOS"
 
 # ============================================================
-# 언어 런타임 — Python (pyenv)
+# 언어 런타임 — Python·Ruby·Node 등은 mise가 관리 (.zshrc 의 mise activate)
+# pyenv / rbenv / nvm 은 mise 로 통합하여 제거함 (2026-06-17)
 # ============================================================
-eval "$(pyenv init --path)"
 
 # ============================================================
 # 언어 런타임 — Go
