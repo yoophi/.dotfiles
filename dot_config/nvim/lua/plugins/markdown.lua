@@ -67,10 +67,10 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     branch = "master", -- Neovim 0.11 호환 브랜치
-    ft = { "markdown" },
+    ft = { "markdown", "rust", "toml" },
     build = ":TSUpdate",
     opts = {
-      ensure_installed = { "markdown", "markdown_inline" },
+      ensure_installed = { "markdown", "markdown_inline", "rust", "toml" },
       highlight = {
         enable = true,
       },
