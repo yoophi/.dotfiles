@@ -7,7 +7,7 @@
 return {
   "carlos-algms/agentic.nvim",
   opts = {
-    provider = "claude-agent-acp",
+    provider = "codex-acp",
   },
   keys = {
     {

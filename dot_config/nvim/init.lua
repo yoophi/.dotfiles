@@ -10,3 +10,12 @@ vim.g.mapleader = " "
 require("config.options") -- 기본 에디터 설정
 require("config.keymaps") -- 공통 키맵
 require("config.lazy")    -- 플러그인 매니저 부트스트랩 + 플러그인 로드
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "rust", "typescript", "typescriptreact" },
+  callback = function ()
+    -- vim.opt_local.foldmethod = "syntax"
+    vim.opt_local.foldmethod = "expr"
+    vim.opt_local.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+  end,
+})
