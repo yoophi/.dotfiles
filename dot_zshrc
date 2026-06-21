@@ -107,7 +107,8 @@ alias gt-dev='ghostty --background=003355 &'
 # IDE 통합
 # ============================================================
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
-alias p='cd /Users/yoophi/private'
+alias p='cd ~/project'
+alias pv='cd ~/private'
 
 # ============================================================
 # nvm — Node.js 버전 관리자
