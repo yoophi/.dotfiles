@@ -268,21 +268,59 @@ end)
 hs.window.animationDuration = 0
 
 local inputEnglish = "com.apple.keylayout.ABC"
-local esc_bind
+local esc_keycode = hs.keycodes.map.escape
+local esc_reposting = false
+local esc_pending = false
 
--- esc 키가 눌렸을 때, 영문으로 전환 후 esc 키 이벤트를 발생시킴 
-function back_to_eng()
-	local inputSource = hs.keycodes.currentSourceID()
-	if not (inputSource == inputEnglish) then
-		hs.keycodes.currentSourceID(inputEnglish)
-	end
+if escape_input_tap then
+  escape_input_tap:stop()
+end
 
-	esc_bind:disable()
-	hs.eventtap.keyStroke({}, 'escape')
-	esc_bind:enable()
-end 
+-- esc 키가 눌렸을 때, 영문으로 전환 후 esc 키 이벤트를 발생시킴
+local function post_escape()
+  hs.eventtap.event.newKeyEvent({}, "escape", true):post()
+  hs.eventtap.event.newKeyEvent({}, "escape", false):post()
+end
 
-esc_bind = hs.hotkey.new({}, 'escape', back_to_eng):enable()
+escape_input_tap = hs.eventtap.new({
+  hs.eventtap.event.types.keyDown,
+  hs.eventtap.event.types.keyUp,
+}, function(event)
+  if event:getKeyCode() ~= esc_keycode then
+    return false
+  end
+
+  if esc_reposting then
+    return false
+  end
+
+  if event:getType() == hs.eventtap.event.types.keyUp then
+    if esc_pending then
+      return true
+    end
+    return false
+  end
+
+  if hs.keycodes.currentSourceID() == inputEnglish then
+    return false
+  end
+
+  hs.keycodes.currentSourceID(inputEnglish)
+  esc_pending = true
+  esc_reposting = true
+
+  hs.timer.doAfter(0.05, function()
+    post_escape()
+    esc_pending = false
+    hs.timer.doAfter(0.05, function()
+      esc_reposting = false
+    end)
+  end)
+
+  return true
+end)
+
+escape_input_tap:start()
 
 -- Load and install the Hyper key extension. Binding to F18
 local hyper = require('hyper')
