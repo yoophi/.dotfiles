@@ -295,7 +295,7 @@ hyper.bindShiftKey('p', function()
     hs.spotify.displayCurrentTrack()
   end)
 
-hyper.bindKey(']', function()
-    am.switchToAndFromApp("com.googlecode.iterm2")
-  end)
-
+-- Disabled: `am` is not defined in this config.
+-- hyper.bindKey(']', function()
+--     am.switchToAndFromApp("com.googlecode.iterm2")
+--   end)
