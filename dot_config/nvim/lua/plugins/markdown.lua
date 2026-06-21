@@ -66,17 +66,23 @@ vim.api.nvim_create_autocmd("FileType", {
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    branch = "master", -- Neovim 0.11 호환 브랜치
-    ft = { "markdown", "rust", "toml" },
+    branch = "main",
+    lazy = false, -- Neovim 0.12용 nvim-treesitter rewrite는 lazy-load를 지원하지 않는다.
     build = ":TSUpdate",
     opts = {
       ensure_installed = { "markdown", "markdown_inline", "rust", "toml" },
-      highlight = {
-        enable = true,
-      },
     },
     config = function(_, opts)
-      require("nvim-treesitter.configs").setup(opts)
+      local ts = require("nvim-treesitter")
+      ts.setup()
+      ts.install(opts.ensure_installed)
+
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = { "markdown", "rust", "toml" },
+        callback = function()
+          pcall(vim.treesitter.start)
+        end,
+      })
     end,
   },
   -- 버퍼 내 인라인 렌더 (헤더 배경 / 코드블록 / 표 정렬 / 체크박스 등)
