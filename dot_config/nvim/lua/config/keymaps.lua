@@ -34,3 +34,12 @@ end, { desc = "선택 영역 Glow 미리보기" })
 map("x", "<leader>mP", function()
   vim.fn.system({ "open", "-a", "/Applications/Setapp/Marked.app", selection_to_tmp_md() })
 end, { desc = "선택 영역 Marked 미리보기" })
+
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(args)
+    vim.keymap.set("n", "gd", vim.lsp.buf.definition, {
+      buffer = args.buf,
+      desc = "정의로 이동",
+    })
+  end,
+})
