@@ -187,7 +187,8 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "l", open("Logseq"))
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'c', open("Google Chrome"))
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'f', open("ForkLift"))
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'i', open("iTerm"))
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'j', open("IntelliJ IDEA"))
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'i', open("iTerm"))
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'k', open("kitty"))
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'n', open("Notion"))
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, 's', open("Slack"))
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, 't', function () 
@@ -211,10 +212,6 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'v', function ()
       text = 'Visual Studio Code',
       subText = 'open Visual Studio Code',
     },
-    {
-      text = 'Cursor',
-      subText = 'open Cursor',
-    }
   }
   mChooser:choices(list)
   mChooser:show()
@@ -291,31 +288,38 @@ escape_input_tap = hs.eventtap.new({
   end
 
   if esc_reposting then
-    return false
+    return false  -- 재발행한 가짜 esc 는 통과
   end
 
+  -- 원본 keyDown/keyUp 은 esc_pending 동안 모두 삼킴
   if event:getType() == hs.eventtap.event.types.keyUp then
-    if esc_pending then
-      return true
-    end
-    return false
+    return esc_pending
   end
 
+  -- 이미 영문이면 그대로 통과 (esc 정상 동작)
   if hs.keycodes.currentSourceID() == inputEnglish then
     return false
   end
 
+  -- 한글모드: 영문 전환 후, 전환이 실제로 끝나면 esc 발행
   hs.keycodes.currentSourceID(inputEnglish)
   esc_pending = true
-  esc_reposting = true
 
-  hs.timer.doAfter(0.05, function()
-    post_escape()
-    esc_pending = false
-    hs.timer.doAfter(0.05, function()
-      esc_reposting = false
-    end)
-  end)
+  local tries = 0
+  local function fire()
+    tries = tries + 1
+    if hs.keycodes.currentSourceID() == inputEnglish or tries > 20 then
+      esc_reposting = true
+      post_escape()
+      esc_pending = false
+      hs.timer.doAfter(0.03, function()
+        esc_reposting = false
+      end)
+    else
+      hs.timer.doAfter(0.01, fire)  -- 최대 ~200ms 까지 10ms 간격 폴링
+    end
+  end
+  hs.timer.doAfter(0.01, fire)
 
   return true
 end)
