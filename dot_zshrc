@@ -81,7 +81,6 @@ alias tree='tree -I node_modules'
 alias openports="lsof -PiTCP -sTCP:LISTEN"
 alias portkill='f() { lsof -i ${1} | tail -n +2 | awk "{ print $2 }" | xargs kill }; f'
 function cdtmp() { cd "$(mktemp -d)" }
-alias openclaw='ssh nas.yoophi.dev -p 3022 -t /opt/homebrew/opt/node@22/bin/node /opt/homebrew/bin/openclaw tui'
 
 # ============================================================
 # Alias — Claude Code
@@ -119,3 +118,6 @@ export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
 nvm use default >/dev/null 2>&1
+
+# OpenClaw Completion
+[ -f "/Users/yoophi/.openclaw/completions/openclaw.zsh" ] && source "/Users/yoophi/.openclaw/completions/openclaw.zsh"
