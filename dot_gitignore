@@ -1,0 +1,28 @@
+tmp
+*.tmp
+.DS_Store
+.envrc
+
+# todo
+TODO.md
+TODO.taskpaper
+MEMO.md
+
+.python-version
+tmux-session.yaml
+
+# payhere-android-cat
+settings.json
+payhere_cat_key.keystore
+
+# agentic coding
+agent-docs/*
+conversation_history.txt
+agent-docs
+.reference
+
+**/.claude/settings.local.json
+
+.acp-raw-events/*
+
+.repo-explorer.json

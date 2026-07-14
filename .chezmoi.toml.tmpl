@@ -1,0 +1,6 @@
+{{- $hostname := promptStringOnce . "hostname" "Machine name" -}}
+{{- $gitEmail := promptStringOnce . "gitEmail" "Git email address" -}}
+
+[data]
+hostname = {{ $hostname | quote }}
+gitEmail = {{ $gitEmail | quote }}

@@ -1,0 +1,93 @@
+[init]
+defaultBranch = main
+
+[alias]
+s = status -s
+st = status
+adog = log --all --decorate --oneline --graph
+dog  = log --decorate --oneline --graph
+
+# Show verbose output about tags, branches or remotes
+tags = tag -l
+branches = branch -a
+remotes = remote -v
+
+# Pretty log output
+hist = log --graph --pretty=format:'%Cred%h%Creset %s%C(yellow)%d%Creset %Cgreen(%cr)%Creset [%an]' --abbrev-commit --date=relative
+x = log --graph --pretty=format:'%s%C(yellow)%d%Creset %Cgreen(%cr)%Creset [%an]' --abbrev-commit --date=relative
+
+# feature
+feat = feature -a feat
+
+# alias
+alias = ! git config --get-regexp ^alias\\. | sort | sed -e s/^alias\\.// -e s/\\ /\\ =\\ /
+
+[color]
+# Use colors in Git commands that are capable of colored output when
+# outputting to the terminal. (This is the default setting in Git ≥ 1.8.4.)
+ui = auto
+
+[color "branch"]
+current = yellow reverse
+local = yellow
+remote = green
+
+; [color "diff"]
+; meta = yellow bold
+; frag = magenta bold
+; old = red bold
+; new = green bold
+
+[color "status"]
+added = yellow
+changed = green
+untracked = cyan
+
+[user]
+	name = Pyunghyuk YOO
+	email = {{ .gitEmail | quote }}
+
+[filter "lfs"]
+smudge = git-lfs smudge -- %f
+process = git-lfs filter-process
+required = true
+clean = git-lfs clean -- %f
+
+[core]
+excludesFile = ~/.gitignore
+	pager = delta
+
+; [diff]
+; tool = p4merge
+;
+; [difftool]
+; prompt = false
+;
+; [difftool "meld"]
+; cmd = meld \"$LOCAL\" \"$REMOTE\"
+;
+; [difftool "p4merge"]
+; cmd = /Applications/p4merge.app/Contents/Resources/launchp4merge "\"$REMOTE\"" "\"$LOCAL\""
+
+; [merge]
+; 	tool = p4merge
+; 	conflictStyle = zdiff3
+
+[mergetool "p4merge"]
+  cmd = /Applications/p4merge.app/Contents/Resources/launchp4merge "\"$PWD/$BASE\"" "\"$PWD/$REMOTE\"" "\"$PWD/$LOCAL\"" "\"$PWD/$MERGED\""
+	keepTemporaries = false
+	trustExitCode = false
+	keepBackup = false
+
+; [interactive]
+; 	diffFilter = delta --color-only
+[delta]
+	navigate = true
+[credential "https://github.com"]
+	helper =
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[safe]
+	directory = *
