@@ -158,10 +158,9 @@ nvm use default >/dev/null 2>&1
 # Things 3 CLI (things3-cli) — URL scheme 쓰기용 auth token
 # Things → 설정 → 일반 → Things URL 활성화 → 토큰 관리 에서 재발급 가능
 # ============================================================
-# Token is stored in the macOS Keychain (service: com.yoophi.things3-cli.auth-token).
-if command -v security >/dev/null 2>&1; then
-  THINGS_AUTH_TOKEN="$(security find-generic-password -a "$(id -un)" -s 'com.yoophi.things3-cli.auth-token' -w 2>/dev/null)" || true
-  export THINGS_AUTH_TOKEN
+# Token is stored in a local, untracked file with 0600 permissions.
+if [ -r "$HOME/.config/private/things3.env" ]; then
+  source "$HOME/.config/private/things3.env"
 fi
 
 if command -v wtp >/dev/null 2>&1; then
