@@ -102,6 +102,38 @@ alias codex-yolo='npx @openai/codex@latest --dangerously-bypass-approvals-and-sa
 alias gt-prod='ghostty --background=4a0000 &'
 alias gt-dev='ghostty --background=003355 &'
 
+# 디렉토리별 Ghostty 배경색
+# - 회사 프로젝트: 짙은 적갈색
+# - 개인 프로젝트: 짙은 청색
+# - 그 외 경로: Ghostty config의 기본 배경색
+autoload -Uz add-zsh-hook
+
+typeset -gA GHOSTTY_DIR_BG=(
+  "$HOME/payhereinc" '#321f24'
+  "$HOME/project"    '#1f2a3a'
+)
+
+ghostty_bg_by_dir() {
+  [[ "$TERM_PROGRAM" == "ghostty" ]] || return
+
+  local dir bg='' best=0
+  for dir in ${(k)GHOSTTY_DIR_BG}; do
+    if [[ "$PWD/" == "$dir"/* && ${#dir} -gt $best ]]; then
+      bg="$GHOSTTY_DIR_BG[$dir]"
+      best=${#dir}
+    fi
+  done
+
+  if [[ -n "$bg" ]]; then
+    printf '\e]11;%s\e\\' "$bg"
+  else
+    printf '\e]111\e\\'
+  fi
+}
+
+add-zsh-hook chpwd ghostty_bg_by_dir
+ghostty_bg_by_dir
+
 # ============================================================
 # IDE 통합
 # ============================================================
@@ -120,4 +152,18 @@ export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 nvm use default >/dev/null 2>&1
 
 # OpenClaw Completion
-[ -f "/Users/yoophi/.openclaw/completions/openclaw.zsh" ] && source "/Users/yoophi/.openclaw/completions/openclaw.zsh"
+[ -f "$HOME/.openclaw/completions/openclaw.zsh" ] && source "$HOME/.openclaw/completions/openclaw.zsh"
+
+# ============================================================
+# Things 3 CLI (things3-cli) — URL scheme 쓰기용 auth token
+# Things → 설정 → 일반 → Things URL 활성화 → 토큰 관리 에서 재발급 가능
+# ============================================================
+# Token is stored in the macOS Keychain (service: com.yoophi.things3-cli.auth-token).
+if command -v security >/dev/null 2>&1; then
+  THINGS_AUTH_TOKEN="$(security find-generic-password -a "$(id -un)" -s 'com.yoophi.things3-cli.auth-token' -w 2>/dev/null)" || true
+  export THINGS_AUTH_TOKEN
+fi
+
+if command -v wtp >/dev/null 2>&1; then
+  eval "$(wtp shell-init zsh)"
+fi
