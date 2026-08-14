@@ -16,7 +16,6 @@ export EDITOR=/opt/homebrew/bin/nvim
 # PATH 설정 (로그인 시 1회만 설정)
 # ============================================================
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
-export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$HOME/.bun/bin:$PATH"
 export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
 export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"

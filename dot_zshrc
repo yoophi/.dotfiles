@@ -166,3 +166,8 @@ fi
 if command -v wtp >/dev/null 2>&1; then
   eval "$(wtp shell-init zsh)"
 fi
+
+# ============================================================
+# Obsidian Vault — Hermes 최종 문서 정본
+# ============================================================
+export OBSIDIAN_VAULT_PATH="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/yoophi"
