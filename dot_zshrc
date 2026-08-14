@@ -1,5 +1,10 @@
+# Ghostty terminfo가 없는 원격 환경에서는 호환 가능한 항목으로 폴백
+if [[ $TERM == xterm-ghostty ]] && ! infocmp xterm-ghostty >/dev/null 2>&1; then
+  export TERM=xterm-256color
+fi
+
 # ============================================================
-# Powerlevel10k Instant Prompt (반드시 파일 최상단에 위치)
+# Powerlevel10k Instant Prompt
 # ============================================================
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 
