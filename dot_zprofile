@@ -57,7 +57,7 @@ export CARGO_HOME=$HOME/.cargo
 # ============================================================
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH="$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools"
-export ANDROID_NDK="$ANDROID_HOME/ndk/28.0.12433566"
+export ANDROID_NDK="$ANDROID_HOME/ndk/28.2.13676358"
 
 # ============================================================
 # pnpm
