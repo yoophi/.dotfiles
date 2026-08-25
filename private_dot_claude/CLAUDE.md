@@ -1,7 +1,7 @@
 # 개인 설정
 
 ## Logseq
-- 기본 그래프는 `/Users/yoophi/private/private-zk`에 있다.
+- 기본 그래프는 `/Users/yoophi/docs/private-zk`에 있다.
 - Logseq 페이지를 조회하거나 기록할 때 이 디렉터리를 사용한다.
 
 ## 다이어그램 / 그래프
