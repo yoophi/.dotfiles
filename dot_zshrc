@@ -97,6 +97,11 @@ alias ccdr='claude --dangerously-skip-permissions --resume'
 alias work='cd ~/work && claude --dangerously-skip-permissions -r work'
 
 # ============================================================
+# kiro-cli
+# ============================================================
+alias kiro-cli-yolo='kiro-cli chat --model claude-opus-5 --trust-all-tools'
+
+# ============================================================
 # codex
 # ============================================================
 alias codex-yolo='npx @openai/codex@latest --dangerously-bypass-approvals-and-sandbox'
