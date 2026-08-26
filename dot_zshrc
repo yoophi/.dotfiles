@@ -82,7 +82,7 @@ alias pc='f() { [[ -z "${1}" ]] && cd ~/payhereinc/@pos-connector/main || cd ~/p
 alias poc='f() { [[ -z "${1}" ]] && cd ~/poc || cd ~/poc/$1 }; f'
 alias today='f() { take ~/"${1}/$(date +%F)"}; f'
 alias t='f() { take "./$(date +%F)" }; f'
-alias j='f() { cd ~/private/private-zk; vim ./journals/$(date +%Y_%m_%d).md }; f'
+alias j='f() { cd ~/docs/private-zk; vim ./journals/$(date +%Y_%m_%d).md }; f'
 
 # ============================================================
 # Alias — 유틸리티
@@ -100,6 +100,13 @@ alias cr='claude --resume'
 alias ccd='claude --dangerously-skip-permissions'
 alias ccdr='claude --dangerously-skip-permissions --resume'
 alias work='cd ~/work && claude --dangerously-skip-permissions -r work'
+
+# ============================================================
+# kiro-cli
+# ============================================================
+if command -v kiro-cli >/dev/null 2>&1; then
+  alias kiro-cli-yolo='kiro-cli chat --model claude-opus-5 --trust-all-tools'
+fi
 
 # ============================================================
 # codex
