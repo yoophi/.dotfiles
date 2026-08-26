@@ -1,3 +1,8 @@
+# Kiro CLI pre block. Keep at the top of this file.
+if command -v kiro-cli >/dev/null 2>&1 && [[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zprofile.pre.zsh" ]]; then
+  builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zprofile.pre.zsh"
+fi
+
 # ============================================================
 # Homebrew
 # ============================================================
@@ -45,6 +50,9 @@ export PATH="$PATH:${GOPATH}/bin:${GOROOT}/bin"
 # ============================================================
 if /usr/libexec/java_home -v17 >/dev/null 2>&1; then
   export JAVA_HOME=$(/usr/libexec/java_home -v17)
+else
+  # Homebrew's versioned JDK is keg-only and is not registered with java_home.
+  export JAVA_HOME="/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
 fi
 
 # ============================================================
@@ -56,7 +64,8 @@ export CARGO_HOME=$HOME/.cargo
 # Android SDK
 # ============================================================
 export ANDROID_HOME=$HOME/Library/Android/sdk
-export PATH="$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools"
+export ANDROID_SDK_ROOT="$ANDROID_HOME"
+export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools"
 export ANDROID_NDK="$ANDROID_HOME/ndk/28.2.13676358"
 
 # ============================================================
@@ -90,3 +99,8 @@ export CSC_LINK=$HOME/developer_id_application_cert.p12
 # 시스템 리소스 제한
 # ============================================================
 ulimit -n 65536
+
+# Kiro CLI post block. Keep at the bottom of this file.
+if command -v kiro-cli >/dev/null 2>&1 && [[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zprofile.post.zsh" ]]; then
+  builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zprofile.post.zsh"
+fi
