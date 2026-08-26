@@ -77,7 +77,7 @@ alias pc='f() { [[ -z "${1}" ]] && cd ~/payhereinc/@pos-connector/main || cd ~/p
 alias poc='f() { [[ -z "${1}" ]] && cd ~/poc || cd ~/poc/$1 }; f'
 alias today='f() { take ~/"${1}/$(date +%F)"}; f'
 alias t='f() { take "./$(date +%F)" }; f'
-alias j='f() { cd ~/private/private-zk; vim ./journals/$(date +%Y_%m_%d).md }; f'
+alias j='f() { cd ~/docs/private-zk; vim ./journals/$(date +%Y_%m_%d).md }; f'
 
 # ============================================================
 # Alias — 유틸리티
