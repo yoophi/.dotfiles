@@ -341,3 +341,5 @@ hyper.bindShiftKey('p', function()
 -- hyper.bindKey(']', function()
 --     am.switchToAndFromApp("com.googlecode.iterm2")
 --   end)
+
+require("agent-shortcuts").start()
