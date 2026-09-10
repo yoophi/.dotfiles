@@ -1,0 +1,13 @@
+# chezmoi 가 관리하지 않는 대상. 여기 적힌 경로는 chezmoi add 도 거부된다.
+
+# 런타임 생성물 (Agent Cockpit 세션 상태·오버레이 위치)
+.hammerspoon/agent-cockpit.state.json
+
+# API 키·다른 도구의 훅·기기별 설정이 섞인 파일. Agent Cockpit 훅 항목은 파일 전체 대신
+# ~/.hammerspoon/bin/agent-cockpit-hooks.sh 가 병합한다 (run_onchange_after_10-agent-cockpit-hooks.sh).
+.claude/settings.json
+.codex/hooks.json
+.codex/config.toml
+
+# 저장소 설명 문서. 홈 디렉터리에 배치하지 않는다.
+README.md

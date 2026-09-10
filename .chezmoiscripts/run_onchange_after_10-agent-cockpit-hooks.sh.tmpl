@@ -1,0 +1,11 @@
+#!/bin/sh
+# Agent Cockpit 훅을 Claude Code / Codex 설정에 병합한다.
+#
+# ~/.claude/settings.json 과 ~/.codex/hooks.json 은 API 키·다른 도구의 훅이 섞여 있어 chezmoi 가 파일을 직접
+# 관리하지 않는다(.chezmoiignore 참고). 대신 이 스크립트가 agent-cockpit-hooks.sh install 로 콕핏 항목만
+# 멱등 병합한다. 아래 해시(설치 스크립트 내용)가 바뀔 때만 다시 실행된다.
+#
+# 수동 실행:  ~/.hammerspoon/bin/agent-cockpit-hooks.sh install|uninstall|status
+# agent-cockpit-hooks.sh sha256: {{ include "dot_hammerspoon/bin/executable_agent-cockpit-hooks.sh" | sha256sum }}
+set -eu
+exec "$HOME/.hammerspoon/bin/agent-cockpit-hooks.sh" install

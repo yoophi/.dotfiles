@@ -1,5 +1,9 @@
 -- Agent prompt shortcuts for Hammerspoon.
 -- Put this file at ~/.hammerspoon/agent-shortcuts.lua.
+--
+-- 오버레이 스타일(폭·헤더·행·색·드래그)은 overlay-style.lua 에서 가져온다 (Agent Cockpit 과 공용).
+
+local S = require("overlay-style")
 
 local M = {}
 
@@ -18,12 +22,6 @@ local defaults = {
     -- Use this shortcut to show or hide the overlay.
     toggleModifiers = { "cmd", "alt" },
     toggleKey = "0",
-
-    width = 520,
-    headerHeight = 38,
-    rowHeight = 30,
-    bottomPadding = 8,
-    backgroundOpacity = 0.82,
   },
 
   shortcuts = {
@@ -68,9 +66,9 @@ local defaults = {
 local activeHotkeys = {}
 local activeConfig = nil
 local overlayCanvas = nil
-local dragEventTap = nil
-local dragOffset = nil
+local stopDragging = nil
 local overlayPositionSetting = "agentShortcuts.overlayPosition"
+local overlayFrameSetting = "agentShortcuts.overlayFrame"     -- Agent Cockpit 이 아래에 붙기 위해 읽는다
 
 local function valueOrDefault(value, fallback)
   if value == nil then
@@ -97,14 +95,6 @@ local function buildConfig(overrides)
       toggleModifiers = overlayOverrides.toggleModifiers
         or defaults.overlay.toggleModifiers,
       toggleKey = overlayOverrides.toggleKey or defaults.overlay.toggleKey,
-      width = overlayOverrides.width or defaults.overlay.width,
-      headerHeight = overlayOverrides.headerHeight
-        or defaults.overlay.headerHeight,
-      rowHeight = overlayOverrides.rowHeight or defaults.overlay.rowHeight,
-      bottomPadding = overlayOverrides.bottomPadding
-        or defaults.overlay.bottomPadding,
-      backgroundOpacity = overlayOverrides.backgroundOpacity
-        or defaults.overlay.backgroundOpacity,
     },
   }
 end
@@ -133,198 +123,59 @@ local function singleLine(text)
   return text:gsub("[\r\n]+", " ↵ ")
 end
 
-local function overlayHeight(config)
-  return config.overlay.headerHeight
-    + (#config.shortcuts * config.overlay.rowHeight)
-    + config.overlay.bottomPadding
-end
-
-local function rectanglesOverlap(first, second)
-  return first.x < second.x + second.w
-    and second.x < first.x + first.w
-    and first.y < second.y + second.h
-    and second.y < first.y + first.h
-end
-
-local function savedOrDefaultOverlayPosition(config)
+local function savedOrDefaultOverlayPosition()
   local saved = hs.settings.get(overlayPositionSetting)
-  local width = config.overlay.width
-
-  if type(saved) == "table"
-    and type(saved.x) == "number"
-    and type(saved.y) == "number"
-  then
-    local savedHeader = {
-      x = saved.x,
-      y = saved.y,
-      w = width,
-      h = config.overlay.headerHeight,
-    }
-
-    for _, screen in ipairs(hs.screen.allScreens()) do
-      if rectanglesOverlap(savedHeader, screen:frame()) then
-        return { x = saved.x, y = saved.y }
-      end
-    end
+  if type(saved) == "table" and type(saved.x) == "number" and type(saved.y) == "number"
+    and S.onAnyScreen(saved.x, saved.y, S.width, S.headerHeight) then
+    return { x = saved.x, y = saved.y }
   end
-
-  local frame = hs.screen.mainScreen():frame()
-  return {
-    x = frame.x + frame.w - width - 20,
-    y = frame.y + 20,
-  }
+  return S.defaultTopRight()
 end
 
-local function clampOverlayToCurrentScreen(position, config)
-  local screen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
-  local frame = screen:frame()
-  local width = config.overlay.width
-  local height = overlayHeight(config)
-  local maximumX = math.max(frame.x, frame.x + frame.w - width)
-  local maximumY = math.max(frame.y, frame.y + frame.h - height)
-
-  return {
-    x = math.max(frame.x, math.min(position.x, maximumX)),
-    y = math.max(frame.y, math.min(position.y, maximumY)),
-  }
-end
-
-local function stopDragging()
-  if dragEventTap then
-    dragEventTap:stop()
-    dragEventTap = nil
+local function publishFrame()
+  if overlayCanvas then
+    local f = overlayCanvas:frame()
+    hs.settings.set(overlayFrameSetting, { x = f.x, y = f.y, w = f.w, h = f.h })
   end
-  dragOffset = nil
-end
-
-local function beginDragging(canvas)
-  stopDragging()
-
-  local mousePosition = hs.mouse.absolutePosition()
-  local canvasPosition = canvas:topLeft()
-  dragOffset = {
-    x = mousePosition.x - canvasPosition.x,
-    y = mousePosition.y - canvasPosition.y,
-  }
-
-  dragEventTap = hs.eventtap.new({
-    hs.eventtap.event.types.leftMouseDragged,
-    hs.eventtap.event.types.leftMouseUp,
-  }, function(event)
-    if not overlayCanvas or not dragOffset then
-      stopDragging()
-      return false
-    end
-
-    if event:getType() == hs.eventtap.event.types.leftMouseDragged then
-      local currentMousePosition = hs.mouse.absolutePosition()
-      overlayCanvas:topLeft({
-        x = currentMousePosition.x - dragOffset.x,
-        y = currentMousePosition.y - dragOffset.y,
-      })
-    else
-      local finalPosition = clampOverlayToCurrentScreen(
-        overlayCanvas:topLeft(),
-        activeConfig
-      )
-      overlayCanvas:topLeft(finalPosition)
-      hs.settings.set(overlayPositionSetting, finalPosition)
-      stopDragging()
-    end
-
-    return false
-  end):start()
 end
 
 local function createOverlay(config)
-  local position = savedOrDefaultOverlayPosition(config)
-  local width = config.overlay.width
-  local height = overlayHeight(config)
-  local headerHeight = config.overlay.headerHeight
+  local position = savedOrDefaultOverlayPosition()
+  local height = S.height(#config.shortcuts)
 
-  overlayCanvas = hs.canvas.new({
-    x = position.x,
-    y = position.y,
-    w = width,
-    h = height,
-  })
+  overlayCanvas = S.newCanvas({ x = position.x, y = position.y, w = S.width, h = height })
 
-  overlayCanvas:appendElements({
-    type = "rectangle",
-    action = "fill",
-    frame = { x = 0, y = 0, w = "100%", h = "100%" },
-    fillColor = {
-      red = 0.08,
-      green = 0.09,
-      blue = 0.11,
-      alpha = config.overlay.backgroundOpacity,
-    },
-    roundedRectRadii = { xRadius = 12, yRadius = 12 },
-  }, {
-    type = "rectangle",
-    action = "fill",
-    frame = { x = 0, y = 0, w = "100%", h = headerHeight },
-    fillColor = { white = 1, alpha = 0.08 },
-    roundedRectRadii = { xRadius = 12, yRadius = 12 },
-  }, {
-    type = "text",
-    text = "Agent Shortcuts  ·  "
-      .. shortcutLabel(
-        config.overlay.toggleModifiers,
-        config.overlay.toggleKey
-      )
-      .. " 표시/숨김",
-    frame = { x = 14, y = 9, w = width - 28, h = 22 },
-    textColor = { white = 1, alpha = 0.94 },
-    textSize = 14,
-    textLineBreak = "truncateTail",
-  })
+  local hint = shortcutLabel(config.overlay.toggleModifiers, config.overlay.toggleKey) .. " 표시/숨김 · 드래그 이동"
+  overlayCanvas:replaceElements(table.unpack(S.baseElements("Agent Shortcuts", hint)))
 
   for index, shortcut in ipairs(config.shortcuts) do
-    local y = headerHeight + ((index - 1) * config.overlay.rowHeight)
-
+    local y = S.rowY(index)
     overlayCanvas:appendElements({
       type = "text",
       text = shortcutLabel(shortcut.modifiers, shortcut.key),
-      frame = { x = 16, y = y + 7, w = 82, h = 20 },
-      textColor = { red = 0.45, green = 0.78, blue = 1, alpha = 1 },
-      textFont = "Menlo-Bold",
-      textSize = 13,
+      frame = { x = S.col.key, y = y + 7, w = S.col.keyW, h = 20 },
+      textColor = S.colors.accent,
+      textFont = S.fonts.key,
+      textSize = S.sizes.key,
       textLineBreak = "truncateTail",
     }, {
       type = "text",
       text = singleLine(shortcut.prompt),
-      frame = { x = 104, y = y + 6, w = width - 120, h = 21 },
-      textColor = { white = 1, alpha = 0.92 },
-      textSize = 13,
+      frame = { x = S.col.text, y = y + 6, w = S.width - S.col.text - 16, h = 21 },
+      textColor = S.colors.text,
+      textSize = S.sizes.text,
       textLineBreak = "truncateTail",
     })
   end
 
   -- Only the header captures mouse clicks; the rest is a reference display.
-  overlayCanvas:appendElements({
-    id = "dragHandle",
-    type = "rectangle",
-    action = "fill",
-    frame = { x = 0, y = 0, w = "100%", h = headerHeight },
-    fillColor = { white = 1, alpha = 0.001 },
-    trackMouseDown = true,
-    trackMouseByBounds = true,
-  })
+  overlayCanvas:appendElements(S.dragHandleElement())
+  stopDragging = S.attachDrag(overlayCanvas, function(pos)
+    hs.settings.set(overlayPositionSetting, pos)
+    publishFrame()
+  end)
 
-  overlayCanvas
-    :level("floating")
-    :behavior({ "canJoinAllSpaces", "stationary", "ignoresCycle" })
-    :clickActivating(false)
-    :mouseCallback(function(_, message, elementId)
-      if message == "mouseDown"
-        and elementId == "dragHandle"
-        and hs.eventtap.checkMouseButtons().left
-      then
-        beginDragging(overlayCanvas)
-      end
-    end)
-
+  publishFrame()
   if config.overlay.showOnStart then
     overlayCanvas:show()
   end
@@ -371,7 +222,7 @@ local function pasteAndEnter(prompt, config)
 end
 
 function M.stop()
-  stopDragging()
+  if stopDragging then stopDragging(); stopDragging = nil end
 
   if overlayCanvas then
     overlayCanvas:delete()
@@ -409,6 +260,11 @@ function M.toggleOverlay()
     end
   end
   return M
+end
+
+-- 현재 오버레이 프레임 (다른 패널이 아래에 붙을 때 사용)
+function M.frame()
+  return overlayCanvas and overlayCanvas:frame() or nil
 end
 
 function M.start(overrides)
