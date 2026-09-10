@@ -40,8 +40,10 @@ chezmoi apply
 `~/.config/chezmoi/chezmoi.toml`. `chezmoi apply` then runs, in this order:
 
 1. `.chezmoiscripts/run_once_before_00-install-shell-deps.sh` — `brew install` of the shell and
-   editor toolchain (neovim, emacs, zsh, powerlevel10k, fzf, zoxide, direnv, pyenv, rbenv, mise, jq),
-   the Hammerspoon cask, and Oh My Zsh if it is missing. Runs once per version of the script.
+   editor toolchain (neovim, emacs, zsh, powerlevel10k, fzf, zoxide, direnv, pyenv, rbenv, mise, jq,
+   `yoophi/tap/agentmeter`), the Hammerspoon cask, and Oh My Zsh. Every item is skipped when it is
+   already present (brew, on `PATH`, or `/Applications/Hammerspoon.app`), so re-running is harmless.
+   Runs once per version of the script.
 2. The managed files listed above.
 3. `.chezmoiscripts/run_onchange_after_10-agent-cockpit-hooks.sh` — runs
    `~/.hammerspoon/bin/agent-cockpit-hooks.sh install`, which merges the Agent Cockpit hook entries

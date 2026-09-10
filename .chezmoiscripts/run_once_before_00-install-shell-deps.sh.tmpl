@@ -1,4 +1,9 @@
 #!/bin/sh
+# 새 Mac 부트스트랩: 셸·에디터 도구, Hammerspoon, agentmeter, Oh My Zsh.
+#
+# run_once_before_: 파일을 배치하기 전에, 스크립트 내용의 해시마다 한 번 실행된다(내용을 고치면 다시 돈다).
+# 이미 있는 것은 건너뛰어 재실행이 무해하도록 한다. brew 밖에서 설치한 zsh(/bin/zsh)·mise(~/.local/bin)·
+# Hammerspoon.app(수동 설치) 과 겹치거나 "already an App" 오류로 중단되는 일을 막기 위해서다.
 set -eu
 
 if ! command -v brew >/dev/null 2>&1; then
@@ -6,21 +11,41 @@ if ! command -v brew >/dev/null 2>&1; then
   exit 0
 fi
 
-brew install \
-  chezmoi \
-  neovim \
-  emacs \
-  zsh \
-  powerlevel10k \
-  fzf \
-  zoxide \
-  direnv \
-  pyenv \
-  rbenv \
-  mise \
-  jq
+# install_formula <formula> [<확인할 명령>]
+#   brew 에 이미 있거나(짧은 이름으로 확인) PATH 에 명령이 있으면 건너뛴다.
+install_formula() {
+  formula="$1"
+  cmd="${2:-}"
+  if brew list --formula "${formula##*/}" >/dev/null 2>&1; then
+    return 0
+  fi
+  if [ -n "$cmd" ] && command -v "$cmd" >/dev/null 2>&1; then
+    echo "skip $formula: $cmd already at $(command -v "$cmd")"
+    return 0
+  fi
+  brew install "$formula"
+}
 
-brew install --cask hammerspoon
+install_formula chezmoi chezmoi
+install_formula neovim nvim
+install_formula emacs emacs
+install_formula zsh zsh                          # macOS 기본 /bin/zsh 가 있으면 건너뛴다
+install_formula powerlevel10k                    # 실행 명령이 없어 brew 목록으로만 판단
+install_formula fzf fzf
+install_formula zoxide zoxide
+install_formula direnv direnv
+install_formula pyenv pyenv
+install_formula rbenv rbenv
+install_formula mise mise                        # curl 설치본이 있으면 건너뛴다
+install_formula jq jq                            # Agent Cockpit 훅(agent-cockpit.sh, agent-cockpit-hooks.sh)이 쓴다
+install_formula yoophi/tap/agentmeter agentmeter # Agent Meter 패널의 데이터 소스 (agentmeter web --live --port 9999)
+
+# Hammerspoon: 앱이 이미 있으면(수동 설치 포함) cask 설치가 실패하므로 건너뛴다
+if [ -d /Applications/Hammerspoon.app ] || brew list --cask hammerspoon >/dev/null 2>&1; then
+  echo "skip hammerspoon: /Applications/Hammerspoon.app already present"
+else
+  brew install --cask hammerspoon
+fi
 
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
   RUNZSH=no CHSH=no KEEP_ZSHRC=yes \
