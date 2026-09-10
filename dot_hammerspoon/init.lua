@@ -347,3 +347,6 @@ require("agent-shortcuts").start()
 -- Claude Code 세션 콕핏 (hyper+` / hyper+1~9 점프, hyper+0 토글). hooks: ~/.claude/hooks/agent-cockpit.sh
 require("hs.ipc")            -- 셸에서 hs CLI 로 콘솔·Lua 실행 (디버깅용)
 require("agent-cockpit").start()
+
+-- agentmeter 사용량 차트 패널 (hyper+u 토글). 데이터: http://localhost:9999/api/dashboard
+require("agent-meter").start()

@@ -64,6 +64,17 @@ function S.clampToScreen(pos, w, h)
   return { x = math.max(f.x, math.min(pos.x, f.x + f.w - w)), y = math.max(f.y, math.min(pos.y, f.y + f.h - h)) }
 end
 
+-- pos 가 놓인 화면(없으면 주 화면) 안으로 보정. 기본 위치 계산처럼 마우스 위치와 무관할 때 쓴다.
+function S.clampToScreenAt(pos, w, h)
+  local target = hs.screen.primaryScreen()
+  for _, s in ipairs(hs.screen.allScreens()) do
+    local f = s:frame()
+    if pos.x >= f.x and pos.x < f.x + f.w and pos.y >= f.y and pos.y < f.y + f.h then target = s; break end
+  end
+  local f = target:frame()
+  return { x = math.max(f.x, math.min(pos.x, f.x + f.w - w)), y = math.max(f.y, math.min(pos.y, f.y + f.h - h)) }
+end
+
 -- ---------------------------------------------------------------- 요소
 -- 배경 + 헤더 띠 + 제목(왼쪽) + 힌트(오른쪽). 캔버스 폭은 S.width 로 가정.
 function S.baseElements(title, hint)
@@ -93,13 +104,18 @@ function S.newCanvas(frame)
 end
 
 -- 헤더 드래그. 놓으면 화면 안으로 보정한 위치를 onDrop({x,y}) 로 넘긴다. 반환값은 드래그 중단 함수.
-function S.attachDrag(canvas, onDrop)
+-- onClick(elementId) 를 주면 trackMouseDown 을 켠 다른 요소의 클릭을 받는다 (캔버스의 mouseCallback 은 하나뿐이라 여기서 분배).
+function S.attachDrag(canvas, onDrop, onClick)
   local tap, offset
   local function stop()
     if tap then tap:stop(); tap = nil end
     offset = nil
   end
   canvas:mouseCallback(function(_, msg, elementId)
+    if msg == "mouseDown" and elementId ~= "dragHandle" then
+      if onClick then onClick(elementId) end
+      return
+    end
     if msg ~= "mouseDown" or elementId ~= "dragHandle" or not hs.eventtap.checkMouseButtons().left then return end
     stop()
     local m = hs.mouse.absolutePosition()

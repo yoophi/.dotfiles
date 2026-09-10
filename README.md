@@ -9,7 +9,8 @@ Personal dotfiles managed by [chezmoi](https://www.chezmoi.io/).
 - `~/.config/nvim`
 - `~/.emacs.d/init.el`
 - `~/.hammerspoon` — Hyper key (`hyper.lua`), input source switching, Agent Shortcuts,
-  Agent Cockpit (`agent-cockpit.lua`, `overlay-style.lua`, `bin/agent-scan.py`, `bin/agent-cockpit-hooks.sh`)
+  Agent Cockpit (`agent-cockpit.lua`, `overlay-style.lua`, `bin/agent-scan.py`, `bin/agent-cockpit-hooks.sh`),
+  Agent Meter (`agent-meter.lua`: usage charts from a local `agentmeter web --live --port 9999` server)
 - `~/.claude/CLAUDE.md`, `~/.claude/hooks/agent-cockpit.sh`
 - `~/.codex/AGENTS.md`, `~/.codex/hooks/agent-cockpit-codex.sh`
 
@@ -51,7 +52,9 @@ chezmoi apply
 
 1. **Hammerspoon** — launch it once, grant Accessibility access when asked, and enable
    *Launch Hammerspoon at login*. It loads `~/.hammerspoon/init.lua`. The Agent Shortcuts panel
-   toggles with `⌘⌥0`, the Agent Cockpit with `hyper+0`.
+   toggles with `⌘⌥0`, the Agent Cockpit with `hyper+0`, the Agent Meter with `hyper+U`.
+   Agent Meter reads `http://localhost:9999/api/dashboard`; when the server is down it shows the
+   command to start it (`agentmeter web --live --port 9999`, from `~/project/agentmeter`).
 2. **Karabiner-Elements** (not managed here) — map a key to `f18` so the Hyper key works.
 3. **Codex** — the first interactive `codex` run shows *New hook - review required* for the five
    `agent-cockpit-codex.sh` hooks. Trust them. This step cannot be automated: the trust hash in
