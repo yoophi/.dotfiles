@@ -10,8 +10,8 @@
 --
 -- 키 (hyper.lua 의 F18 모달 사용):
 --   hyper+`        : 가장 급한 세션(대기 중 가장 오래된 것, 없으면 1번)으로 점프
---   hyper+1 ~ 9    : 오버레이 n번 세션으로 점프
---   hyper+0        : 오버레이 숨김/표시
+--   hyper+1 ~ 7    : 오버레이 n번 세션으로 점프
+--   hyper+9        : 오버레이 숨김/표시
 --   hyper+shift+0  : 목록 전체 비우기
 --
 -- URL (Karabiner shell_command 등 외부 연동용):
@@ -39,7 +39,7 @@ local config = {
   ttlSeconds = 24 * 3600,          -- 이보다 오래 갱신 없는 세션은 버림
   overlay = {
     autoShow = true,               -- 주목할 세션(대기·완료)이 생기면 자동 표시
-    autoHide = true,               -- 주목할 세션이 없으면 자동 숨김 (hyper+0 으로 고정하면 유지)
+    autoHide = true,               -- 주목할 세션이 없으면 자동 숨김 (hyper+9 으로 고정하면 유지)
     stackBelowShortcuts = true,    -- 기본 위치를 Agent Shortcuts 패널 아래로
     offsetY = 300,                 -- Shortcuts 패널 위치를 모를 때의 기본 y
   },
@@ -68,7 +68,7 @@ local sessions = {}      -- key → entry
 local canvas = nil
 local menubar = nil
 local pinned = false     -- 비어 있어도 계속 표시
-local userHidden = false -- 사용자가 hyper+0 으로 숨긴 상태 (새 대기 이벤트가 오면 해제)
+local userHidden = false -- 사용자가 hyper+9 으로 숨긴 상태 (새 대기 이벤트가 오면 해제)
 local overlayPos = nil   -- 사용자가 헤더를 드래그해 옮긴 위치 {x,y}. nil 이면 기본 위치
 local hyperBound = false
 local lastAction = nil   -- 마지막 점프/토글 기록 (진단용)
@@ -237,7 +237,7 @@ local function redrawOverlay()
   end
 
   local c = counts()
-  local hint = string.format("세션 %d  ·  ⏳%d ✅%d ⚙︎%d  ·  hyper+n 점프 · hyper+0 숨김", #list, c.waiting, c.done, c.working)
+  local hint = string.format("세션 %d  ·  ⏳%d ✅%d ⚙︎%d  ·  hyper+1~7 점프 · hyper+9 숨김", #list, c.waiting, c.done, c.working)
   local maxRows = config.scan.maxRows or 24
   local overflow = 0
   if #list > maxRows then overflow = #list - maxRows + 1; list = { table.unpack(list, 1, maxRows - 1) } end
@@ -438,7 +438,7 @@ function M.toggleOverlay()
   if canvas and canvas:isShowing() then
     userHidden = true; pinned = false
     canvas:hide()
-    hs.alert.show("Agent Cockpit 숨김 (hyper+0 로 다시 표시)", 0.9)
+    hs.alert.show("Agent Cockpit 숨김 (hyper+9 로 다시 표시)", 0.9)
   else
     userHidden = false; pinned = true
     redrawOverlay()
@@ -528,8 +528,8 @@ function M.start(overrides)
   local ok, hyper = pcall(require, "hyper")
   if ok and hyper and hyper.hyperMode then
     hyper.bindKey("`", M.jumpFirst)
-    for i = 1, 9 do hyper.bindKey(tostring(i), function() M.jumpIndex(i) end) end
-    hyper.bindKey("0", M.toggleOverlay)
+    for i = 1, 7 do hyper.bindKey(tostring(i), function() M.jumpIndex(i) end) end
+    hyper.bindKey("9", M.toggleOverlay)
     hyper.bindShiftKey("0", M.clear)
     hyper.bindShiftKey("`", runScan)
     hyperBound = true

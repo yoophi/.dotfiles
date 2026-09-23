@@ -20,7 +20,7 @@ local defaults = {
     showOnStart = true,
 
     -- Use this shortcut to show or hide the overlay.
-    toggleModifiers = { "cmd", "alt" },
+    toggleModifiers = {},
     toggleKey = "0",
   },
 
@@ -64,6 +64,8 @@ local defaults = {
 }
 
 local activeHotkeys = {}
+local overlayToggleHotkey = nil
+local overlayToggleModal = nil
 local activeConfig = nil
 local overlayCanvas = nil
 local stopDragging = nil
@@ -145,7 +147,7 @@ local function createOverlay(config)
 
   overlayCanvas = S.newCanvas({ x = position.x, y = position.y, w = S.width, h = height })
 
-  local hint = shortcutLabel(config.overlay.toggleModifiers, config.overlay.toggleKey) .. " 표시/숨김 · 드래그 이동"
+  local hint = "hyper+" .. shortcutLabel(config.overlay.toggleModifiers, config.overlay.toggleKey) .. " 표시/숨김 · 드래그 이동"
   overlayCanvas:replaceElements(table.unpack(S.baseElements("Agent Shortcuts", hint)))
 
   for index, shortcut in ipairs(config.shortcuts) do
@@ -222,6 +224,14 @@ local function pasteAndEnter(prompt, config)
 end
 
 function M.stop()
+  if overlayToggleHotkey then
+    overlayToggleHotkey:delete()
+    for i, hotkey in ipairs(overlayToggleModal.keys) do
+      if hotkey == overlayToggleHotkey then table.remove(overlayToggleModal.keys, i); break end
+    end
+    overlayToggleHotkey, overlayToggleModal = nil, nil
+  end
+
   if stopDragging then stopDragging(); stopDragging = nil end
 
   if overlayCanvas then
@@ -285,12 +295,13 @@ function M.start(overrides)
 
   createOverlay(config)
 
-  local overlayToggleHotkey = hs.hotkey.bind(
+  overlayToggleModal = require("hyper").hyperMode
+  overlayToggleModal:bind(
     config.overlay.toggleModifiers,
     config.overlay.toggleKey,
     M.toggleOverlay
   )
-  table.insert(activeHotkeys, overlayToggleHotkey)
+  overlayToggleHotkey = overlayToggleModal.keys[#overlayToggleModal.keys]
 
   return M
 end

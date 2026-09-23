@@ -2,7 +2,7 @@
 --
 -- agentmeter(~/project/agentmeter) 가 `agentmeter web --live --port 9999` 로 띄우는 대시보드의
 -- /api/dashboard JSON 을 주기적으로 받아, Agent Shortcuts·Agent Cockpit 과 같은 스타일의 오버레이에
--- 에이전트별 한도 소진율을 차트로 그린다. 서버에 접속할 수 없으면 실행할 명령을 보여 준다.
+-- 에이전트별 한도 소진율을 차트로 그린다. 서버에 접속할 수 없으면 명령 복사·터미널 실행 버튼을 보여 준다.
 --
 -- 데이터 형식(agentmeter src/adapters/presentation/web.rs):
 --   panes[] { name, display, origin, source, error, reset_credits{label, expiry_label}, meters[] }
@@ -12,14 +12,14 @@
 --   x 는 창 시작~리셋을 0~1000 으로, y 는 47 - 소진율 × 0.43. markers 는 hour/midnight 경계의 x.
 --   hs.canvas 에는 path 요소가 없어 점 목록으로 파싱해 segments(면·선)로 그린다.
 --
--- 단축키: hyper+u 표시/숨김, hyper+shift+u 즉시 새로고침
+-- 단축키: hyper+8 표시/숨김, hyper+shift+u 즉시 새로고침
 -- URL:   hammerspoon://agentmeter-toggle · agentmeter-refresh · agentmeter-move?x=&y= (파라미터 없으면 기본 위치)
 
 local S = require("overlay-style")
 local log = hs.logger.new("agent-meter", "info")
 
 local M = {}
-M.version = "2026-09-10.2"
+M.version = "2026-09-15.1"
 
 M.config = {
   url = "http://localhost:9999/api/dashboard",
@@ -233,7 +233,12 @@ local function buildOffline(reason)
   y = y + 30
   els[#els + 1] = txt(string.format("클릭하면 명령을 복사합니다 · %s · %d초마다 재시도", reason or "", config.retrySec),
     L.x, y, L.w, 14, S.colors.muted, 11)
-  return els, y + 16 + S.bottomPadding
+  y = y + 24
+  els[#els + 1] = { id = "startService", type = "rectangle", action = "fill", fillColor = C.cmdBg,
+    roundedRectRadii = { xRadius = 6, yRadius = 6 }, frame = { x = L.x, y = y, w = L.w, h = 30 }, trackMouseDown = true }
+  els[#els + 1] = txt("▶ 터미널에서 시작", L.x, y + 5, L.w, 20, C.accent, 13,
+    { id = "startServiceText", textAlignment = "center", trackMouseDown = true })
+  return els, y + 30 + S.bottomPadding
 end
 
 -- ---------------------------------------------------------------- 오버레이
@@ -254,6 +259,17 @@ local function onClick(elementId)
   if elementId == "startCmd" or elementId == "startCmdText" then
     hs.pasteboard.setContents(config.startCommand)
     hs.alert.show("복사됨: " .. config.startCommand, 1.5)
+  elseif state.offline and (elementId == "startService" or elementId == "startServiceText") then
+    -- AppleScript 문자열로 인코딩한다. 셸 명령은 Terminal의 새 창에서 그대로 실행한다.
+    local command = config.startCommand:gsub("\\", "\\\\"):gsub('"', '\\"')
+    local ok, _, err = hs.osascript.applescript('tell application "Terminal"\n'
+      .. 'do script "' .. command .. '"\nactivate\nend tell')
+    if ok then
+      hs.alert.show("터미널에서 agentmeter 시작 명령을 실행했습니다", 2)
+    else
+      log.e("터미널 실행 실패: " .. hs.inspect(err))
+      hs.alert.show("터미널 실행 실패 · Hammerspoon 콘솔을 확인하세요", 3)
+    end
   end
 end
 
@@ -289,13 +305,13 @@ local function redraw()
 
   local hint
   if state.offline then
-    hint = "hyper+U 숨김 · ⇧U 새로고침 · 오프라인"
+    hint = "hyper+8 숨김 · ⇧U 새로고침 · 오프라인"
   elseif state.data then
     local d = state.data
-    hint = string.format("hyper+U 숨김 · ⇧U 새로고침 · %s 갱신%s", hhmm(d.generated_at),
+    hint = string.format("hyper+8 숨김 · ⇧U 새로고침 · %s 갱신%s", hhmm(d.generated_at),
       d.refreshing and " · 갱신 중" or (d.next_refresh_at and (" · 다음 " .. hhmm(d.next_refresh_at)) or ""))
   else
-    hint = "hyper+U 숨김 · ⇧U 새로고침 · 불러오는 중"
+    hint = "hyper+8 숨김 · ⇧U 새로고침 · 불러오는 중"
   end
   local all = S.baseElements("Agent Meter", hint)
   for _, e in ipairs(els) do all[#all + 1] = e end
@@ -384,7 +400,7 @@ function M.start(overrides)
 
   local ok, hyper = pcall(require, "hyper")
   if ok and hyper and hyper.hyperMode then
-    hyper.bindKey("u", M.toggle)
+    hyper.bindKey("8", M.toggle)
     hyper.bindShiftKey("u", M.refresh)
   else
     log.w("hyper 모듈 없음: hammerspoon://agentmeter-* URL 만 동작")
