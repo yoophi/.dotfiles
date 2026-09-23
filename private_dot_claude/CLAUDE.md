@@ -19,3 +19,8 @@
   - 기존 프로젝트에 속하는 할 일이면 `things projects` 로 확인 후 해당 프로젝트에 넣는다.
 - 읽기(조회): AppleScript 또는 Things SQLite DB(`~/Library/Group Containers/JLMPQHK86H.com.culturedcode.ThingsMac/`) 읽기 전용 쿼리 허용.
 - `things update` 등 쓰기용 auth token 은 `$THINGS_AUTH_TOKEN` 환경변수에 있다(`~/.zshrc`). 사용자에게 다시 묻지 말 것.
+
+## Notion
+- Notion 관련 작업은 **`ntn` CLI** (`/Users/yoophi/.local/bin/ntn`, `ntn --help`) 를 사용한다.
+- Notion MCP 도구 대신 `ntn` 을 우선 사용한다.
+- 주요 서브커맨드: `ntn pages`, `ntn datasources`, `ntn files`, `ntn api`(공개 API 직접 호출), `ntn whoami`, `ntn doctor`.
