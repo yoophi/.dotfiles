@@ -100,6 +100,7 @@ alias cr='claude --resume'
 alias ccd='claude --dangerously-skip-permissions'
 alias ccdr='claude --dangerously-skip-permissions --resume'
 alias work='cd ~/work && claude --dangerously-skip-permissions -r work'
+alias update-tools='opencode upgrade; codex update; claude update; brew upgrade herdr'
 
 # ============================================================
 # kiro-cli
@@ -182,6 +183,13 @@ if [ -r "$HOME/.config/private/things3.env" ]; then
   source "$HOME/.config/private/things3.env"
 fi
 
+# ============================================================
+# Typesafe API key — 로컬 전용 파일(0600, git 미추적)에 보관
+# ============================================================
+if [ -r "$HOME/.config/private/typesafe.env" ]; then
+  source "$HOME/.config/private/typesafe.env"
+fi
+
 if command -v wtp >/dev/null 2>&1; then
   eval "$(wtp shell-init zsh)"
 fi
@@ -195,3 +203,6 @@ export OBSIDIAN_VAULT_PATH="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Do
 if command -v kiro-cli >/dev/null 2>&1 && [[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh" ]]; then
   builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh"
 fi
+
+# Windsurf (Devin) CLI — 설치되어 있을 때만 PATH 에 추가
+[[ -d "$HOME/.codeium/windsurf/bin" ]] && export PATH="$HOME/.codeium/windsurf/bin:$PATH"
