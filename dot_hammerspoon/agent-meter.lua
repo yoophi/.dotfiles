@@ -58,6 +58,13 @@ local L = {
 }
 
 local POS_KEY = "agentMeter.overlayPosition"
+local PANEL = "agent-meter"
+-- overlay-layout 이 있으면 스택 자리를 묻고, 없으면 예전처럼 위 패널 아래를 직접 찾는다.
+local function layoutManager()
+  local ok, layout = pcall(require, "overlay-layout")
+  if ok and type(layout) == "table" and layout.slot then return layout end
+  return nil
+end
 local state = { data = nil, offline = nil, canvas = nil, pos = nil, timer = nil, userHidden = false, stopDrag = nil }
 
 -- ---------------------------------------------------------------- 유틸
@@ -286,8 +293,11 @@ local function redraw()
   -- 사용자가 드래그해 둔 위치가 있으면 그대로, 없으면 매번 기본 위치(콕핏 아래 → Shortcuts 아래 → 우상단)를
   -- 다시 계산한다. 콕핏은 세션 수에 따라 높이가 바뀌고 시작 직후에는 캔버스가 없을 수 있어, 한 번만 계산하면 겹친다.
   local pos
+  local layout = layoutManager()
   if state.pos and S.onAnyScreen(state.pos.x, state.pos.y, S.width, S.headerHeight) then
     pos = state.pos
+  elseif layout then
+    pos = layout.slot(PANEL, h)
   else
     pos = S.clampToScreenAt(defaultPosition(), S.width, h)
   end
@@ -318,6 +328,7 @@ local function redraw()
   all[#all + 1] = S.dragHandleElement()
   state.canvas:replaceElements(table.unpack(all))
   if not state.userHidden then state.canvas:show() end
+  if layout then layout.schedule() end   -- 높이가 바뀌었을 수 있으니 아래 패널들을 다시 배치
 end
 
 -- ---------------------------------------------------------------- 데이터
@@ -355,14 +366,28 @@ end
 
 -- ---------------------------------------------------------------- 공개 API
 function M.toggle()
-  if not state.canvas then redraw() end
-  if state.canvas:isShowing() then
-    state.userHidden = true
-    state.canvas:hide(0.12)
-  else
-    state.userHidden = false
-    state.canvas:show(0.12)
-  end
+  if M.isVisible() then M.hide() else M.show() end
+  return M
+end
+
+function M.isVisible()
+  return state.canvas ~= nil and state.canvas:isShowing()
+end
+
+-- overlay-all(모든 패널 숨김/표시)용. toggle 과 같은 상태 전이를 방향을 정해 수행한다.
+function M.hide()
+  state.userHidden = true
+  if state.canvas then state.canvas:hide() end
+  local layout = layoutManager()
+  if layout then layout.schedule() end
+  return M
+end
+
+function M.show()
+  state.userHidden = false
+  if state.canvas then state.canvas:show() else redraw() end
+  local layout = layoutManager()
+  if layout then layout.schedule() end
   return M
 end
 
@@ -381,6 +406,8 @@ function M.move(x, y)
 end
 
 function M.stop()
+  local layout = layoutManager()
+  if layout then layout.unregister(PANEL) end
   if state.timer then state.timer:stop(); state.timer = nil end
   if state.stopDrag then state.stopDrag(); state.stopDrag = nil end
   if state.canvas then state.canvas:delete(); state.canvas = nil end
@@ -406,6 +433,22 @@ function M.start(overrides)
     log.w("hyper 모듈 없음: hammerspoon://agentmeter-* URL 만 동작")
   end
 
+  local layout = layoutManager()
+  if layout then
+    layout.register(PANEL, {
+      order = 3,
+      frame = M.frame,
+      visible = M.isVisible,
+      place = function(x, y, w)
+        if state.canvas then
+          local f = state.canvas:frame()
+          state.canvas:frame({ x = x, y = y, w = w or f.w, h = f.h })
+        end
+      end,
+      pinned = function() return state.pos ~= nil end,
+      unpin = function() state.pos = nil; hs.settings.clear(POS_KEY) end,
+    })
+  end
   redraw()
   M.refresh()
   log.i("agent-meter " .. M.version .. " 시작")

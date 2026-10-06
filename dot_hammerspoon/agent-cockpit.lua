@@ -70,6 +70,17 @@ local menubar = nil
 local pinned = false     -- 비어 있어도 계속 표시
 local userHidden = false -- 사용자가 hyper+9 으로 숨긴 상태 (새 대기 이벤트가 오면 해제)
 local overlayPos = nil   -- 사용자가 헤더를 드래그해 옮긴 위치 {x,y}. nil 이면 기본 위치
+local PANEL = "agent-cockpit"
+-- overlay-layout 이 있으면 스택 자리를 묻고, 없으면 예전처럼 Shortcuts 아래를 직접 찾는다.
+local function layoutManager()
+  local ok, layout = pcall(require, "overlay-layout")
+  if ok and type(layout) == "table" and layout.slot then return layout end
+  return nil
+end
+local function layoutSchedule()
+  local layout = layoutManager()
+  if layout then layout.schedule() end
+end
 local hyperBound = false
 local lastAction = nil   -- 마지막 점프/토글 기록 (진단용)
 local stopDragging = nil
@@ -218,7 +229,13 @@ end
 
 local function overlayFrame(rows)
   local h = S.height(rows)
-  local pos = (overlayPos and S.onAnyScreen(overlayPos.x, overlayPos.y, S.width, S.headerHeight)) and overlayPos or defaultPosition()
+  local pos
+  if overlayPos and S.onAnyScreen(overlayPos.x, overlayPos.y, S.width, S.headerHeight) then
+    pos = overlayPos
+  else
+    local layout = layoutManager()
+    pos = layout and layout.slot(PANEL, h) or defaultPosition()
+  end
   return { x = pos.x, y = pos.y, w = S.width, h = h }
 end
 
@@ -289,6 +306,7 @@ local function redrawOverlay()
 
   local shouldShow = (not userHidden) and (pinned or (config.overlay.autoShow and attention > 0))
   if shouldShow then canvas:show() elseif config.overlay.autoHide or userHidden then canvas:hide() end
+  layoutSchedule()   -- 높이나 표시 여부가 바뀌었을 수 있으니 아래 패널들을 다시 배치
 end
 
 -- ---------------------------------------------------------------- 메뉴바
@@ -438,6 +456,7 @@ function M.toggleOverlay()
   if canvas and canvas:isShowing() then
     userHidden = true; pinned = false
     canvas:hide()
+    layoutSchedule()
     hs.alert.show("Agent Cockpit 숨김 (hyper+9 로 다시 표시)", 0.9)
   else
     userHidden = false; pinned = true
@@ -445,6 +464,26 @@ function M.toggleOverlay()
     hs.alert.show("Agent Cockpit 표시", 0.6)
   end
   saveState()
+end
+
+-- overlay-all(모든 패널 숨김/표시)용. toggleOverlay 와 같은 상태 전이를 alert 없이 방향을 정해 수행한다.
+function M.hideOverlay()
+  if canvas and canvas:isShowing() then
+    userHidden = true; pinned = false
+    canvas:hide()
+    saveState()
+    layoutSchedule()
+  end
+end
+
+function M.showOverlay()
+  userHidden = false; pinned = true
+  redrawOverlay()
+  saveState()
+end
+
+function M.isVisible()
+  return canvas ~= nil and canvas:isShowing()
 end
 
 function M.clear()
@@ -477,6 +516,8 @@ function M.frame()
 end
 
 function M.stop()
+  local layout = layoutManager()
+  if layout then layout.unregister(PANEL) end
   if stopDragging then stopDragging(); stopDragging = nil end
   if canvas then canvas:delete(); canvas = nil end
   if menubar then menubar:delete(); menubar = nil end
@@ -535,6 +576,23 @@ function M.start(overrides)
     hyperBound = true
   else
     log.w("hyper 모듈 없음: 단축키 대신 hammerspoon://agent-* URL 만 동작")
+  end
+
+  local layout = layoutManager()
+  if layout then
+    layout.register(PANEL, {
+      order = 2,
+      frame = function() return canvas and canvas:frame() or nil end,
+      visible = M.isVisible,
+      place = function(x, y, w)
+        if canvas then
+          local f = canvas:frame()
+          canvas:frame({ x = x, y = y, w = w or f.w, h = f.h })
+        end
+      end,
+      pinned = function() return overlayPos ~= nil end,
+      unpin = function() overlayPos = nil; saveState() end,
+    })
   end
 
   M.timer = hs.timer.doEvery(300, pruneStale)

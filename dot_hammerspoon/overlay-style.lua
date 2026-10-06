@@ -12,7 +12,7 @@ S.rowHeight = 30
 S.bottomPadding = 8
 S.radius = 12
 S.opacity = 0.84
-S.margin = { right = 20, top = 20, gap = 12 }      -- 화면 우상단 기준 여백, 패널 사이 간격
+S.margin = { right = 20, top = 20, bottom = 20, gap = 12 }   -- 화면 가장자리 여백, 패널 사이 간격
 
 S.colors = {
   background = { red = 0.08, green = 0.09, blue = 0.11 },
@@ -132,6 +132,9 @@ function S.attachDrag(canvas, onDrop, onClick)
         canvas:topLeft(final)
         stop()
         if onDrop then onDrop({ x = final.x, y = final.y }) end
+        -- 놓인 패널은 고정 장애물이 되므로 스택을 다시 배치한다 (overlay-layout 이 없으면 무시)
+        local okL, layout = pcall(require, "overlay-layout")
+        if okL and type(layout) == "table" and layout.schedule then layout.schedule() end
       end
       return false
     end):start()

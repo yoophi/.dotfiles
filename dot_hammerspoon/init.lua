@@ -187,7 +187,6 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "l", open("Logseq"))
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'c', open("Google Chrome"))
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'f', open("ForkLift"))
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'i', open("iTerm"))
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'i', open("iTerm"))
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'k', open("kitty"))
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, 'n', open("Notion"))
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, 's', open("Slack"))
@@ -350,3 +349,12 @@ require("agent-cockpit").start()
 
 -- agentmeter 사용량 차트 패널 (hyper+8 토글). 데이터: http://localhost:9999/api/dashboard
 require("agent-meter").start()
+
+-- diskmeter 디스크 사용량 패널 (hyper+d 토글, hyper+shift+d 새로고침). 데이터: http://localhost:9998/api/dashboard
+require("disk-meter").start()
+
+-- 모든 오버레이 패널 한 번에 숨김/되살림 (hyper+h). 패널 모듈들을 start() 한 뒤에 시작해야 한다.
+require("overlay-all").start()
+
+-- 오버레이 패널을 겹치지 않게 세로로 쌓는 레이아웃 관리자 (hyper+shift+h 정리). 패널들이 start() 에서 등록한다.
+require("overlay-layout").start()

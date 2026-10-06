@@ -47,6 +47,11 @@ local defaults = {
     },
     {
       modifiers = { "ctrl", "alt", "shift" },
+      key = "6",
+      prompt = "이 세션에서 진행한 작업의 목표를 한 줄로 요약해주세요.",
+    },
+    {
+      modifiers = { "ctrl", "alt", "shift" },
       key = "0",
       prompt = "commit 하고 push 해주세요.",
     },
@@ -71,6 +76,13 @@ local overlayCanvas = nil
 local stopDragging = nil
 local overlayPositionSetting = "agentShortcuts.overlayPosition"
 local overlayFrameSetting = "agentShortcuts.overlayFrame"     -- Agent Cockpit 이 아래에 붙기 위해 읽는다
+local PANEL = "agent-shortcuts"
+-- overlay-layout 이 있으면 스택 자리를 묻고, 없으면 예전처럼 우상단 기본 위치를 쓴다.
+local function layoutManager()
+  local ok, layout = pcall(require, "overlay-layout")
+  if ok and type(layout) == "table" and layout.slot then return layout end
+  return nil
+end
 
 local function valueOrDefault(value, fallback)
   if value == nil then
@@ -125,12 +137,21 @@ local function singleLine(text)
   return text:gsub("[\r\n]+", " ↵ ")
 end
 
-local function savedOrDefaultOverlayPosition()
+-- 사용자가 드래그해 둔 위치. 없거나 화면 밖이면 nil.
+local function savedOverlayPosition()
   local saved = hs.settings.get(overlayPositionSetting)
   if type(saved) == "table" and type(saved.x) == "number" and type(saved.y) == "number"
     and S.onAnyScreen(saved.x, saved.y, S.width, S.headerHeight) then
     return { x = saved.x, y = saved.y }
   end
+  return nil
+end
+
+local function savedOrDefaultOverlayPosition(height)
+  local saved = savedOverlayPosition()
+  if saved then return saved end
+  local layout = layoutManager()
+  if layout then return layout.slot(PANEL, height) end
   return S.defaultTopRight()
 end
 
@@ -142,8 +163,8 @@ local function publishFrame()
 end
 
 local function createOverlay(config)
-  local position = savedOrDefaultOverlayPosition()
   local height = S.height(#config.shortcuts)
+  local position = savedOrDefaultOverlayPosition(height)
 
   overlayCanvas = S.newCanvas({ x = position.x, y = position.y, w = S.width, h = height })
 
@@ -181,6 +202,8 @@ local function createOverlay(config)
   if config.overlay.showOnStart then
     overlayCanvas:show()
   end
+  local layout = layoutManager()
+  if layout then layout.schedule() end
 end
 
 local function captureClipboard()
@@ -224,6 +247,8 @@ local function pasteAndEnter(prompt, config)
 end
 
 function M.stop()
+  local layout = layoutManager()
+  if layout then layout.unregister(PANEL) end
   if overlayToggleHotkey then
     overlayToggleHotkey:delete()
     for i, hotkey in ipairs(overlayToggleModal.keys) do
@@ -251,6 +276,8 @@ function M.showOverlay()
   if overlayCanvas then
     overlayCanvas:show(0.12)
   end
+  local layout = layoutManager()
+  if layout then layout.schedule() end
   return M
 end
 
@@ -258,6 +285,8 @@ function M.hideOverlay()
   if overlayCanvas then
     overlayCanvas:hide(0.12)
   end
+  local layout = layoutManager()
+  if layout then layout.schedule() end
   return M
 end
 
@@ -273,6 +302,10 @@ function M.toggleOverlay()
 end
 
 -- 현재 오버레이 프레임 (다른 패널이 아래에 붙을 때 사용)
+function M.isVisible()
+  return overlayCanvas ~= nil and overlayCanvas:isShowing()
+end
+
 function M.frame()
   return overlayCanvas and overlayCanvas:frame() or nil
 end
@@ -293,6 +326,23 @@ function M.start(overrides)
     table.insert(activeHotkeys, hotkey)
   end
 
+  local layout = layoutManager()
+  if layout then
+    layout.register(PANEL, {
+      order = 1,
+      frame = M.frame,
+      visible = M.isVisible,
+      place = function(x, y, w)
+        if overlayCanvas then
+          local f = overlayCanvas:frame()
+          overlayCanvas:frame({ x = x, y = y, w = w or f.w, h = f.h })
+          publishFrame()
+        end
+      end,
+      pinned = function() return savedOverlayPosition() ~= nil end,
+      unpin = function() hs.settings.clear(overlayPositionSetting) end,
+    })
+  end
   createOverlay(config)
 
   overlayToggleModal = require("hyper").hyperMode
