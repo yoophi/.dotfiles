@@ -110,7 +110,8 @@ fi
 # ============================================================
 # codex
 # ============================================================
-alias codex-yolo='npx @openai/codex@latest --dangerously-bypass-approvals-and-sandbox'
+alias codex-yolo='codex --dangerously-bypass-approvals-and-sandbox'
+alias cy='codex --dangerously-bypass-approvals-and-sandbox'
 
 # ============================================================
 # ghostty
