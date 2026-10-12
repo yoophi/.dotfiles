@@ -77,8 +77,6 @@ alias vimdiff="nvim -d"
 # Alias — 디렉토리 이동
 # ============================================================
 alias ph="cd ~/payhereinc"
-alias phpoc="cd ~/payhereinc/poc"
-alias pc='f() { [[ -z "${1}" ]] && cd ~/payhereinc/@pos-connector/main || cd ~/payhereinc/@pos-connector/$1 }; f'
 alias poc='f() { [[ -z "${1}" ]] && cd ~/poc || cd ~/poc/$1 }; f'
 alias today='f() { take ~/"${1}/$(date +%F)"}; f'
 alias t='f() { take "./$(date +%F)" }; f'
