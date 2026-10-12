@@ -26,3 +26,6 @@ agent-docs
 .acp-raw-events/*
 
 .repo-explorer.json
+
+# td (marcus/td) 로컬 작업 DB
+.todos/
