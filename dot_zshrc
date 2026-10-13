@@ -98,7 +98,7 @@ alias cr='claude --resume'
 alias ccd='claude --dangerously-skip-permissions'
 alias ccdr='claude --dangerously-skip-permissions --resume'
 alias work='cd ~/work && claude --dangerously-skip-permissions -r work'
-alias update-tools='opencode upgrade; codex update; claude update; brew upgrade herdr'
+alias update-tools='opencode upgrade; codex update; claude update; brew upgrade yoophi/tap/{agentmeter,diskmeter,td,td-gui} herdr'
 
 # ============================================================
 # kiro-cli
