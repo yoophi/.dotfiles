@@ -65,6 +65,11 @@ local defaults = {
       key = "b",
       prompt = "빌드하고 /applications 위치에 설치해주세요",
     },
+    {
+      modifiers = { "ctrl", "alt", "shift" },
+      key = "p",
+      prompt = "PR 생성하기. PR template 있는지 확인하고 있을 경우에 사용",
+    },
   },
 }
 
