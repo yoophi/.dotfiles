@@ -32,7 +32,7 @@
 local S = require("overlay-style")
 
 local M = {}
-M.version = "2026-09-10.3"   -- 로드된 코드 판별용 (상태 파일 version 필드)
+M.version = "2026-10-27.1"   -- 로드된 코드 판별용 (상태 파일 version 필드)
 
 local config = {
   stateFile = os.getenv("HOME") .. "/.hammerspoon/agent-cockpit.state.json",
@@ -68,7 +68,7 @@ local sessions = {}      -- key → entry
 local canvas = nil
 local menubar = nil
 local pinned = false     -- 비어 있어도 계속 표시
-local userHidden = false -- 사용자가 hyper+9 으로 숨긴 상태 (새 대기 이벤트가 오면 해제)
+local userHidden = false -- 수동 숨김은 사용자가 다시 표시할 때까지 유지
 local overlayPos = nil   -- 사용자가 헤더를 드래그해 옮긴 위치 {x,y}. nil 이면 기본 위치
 local PANEL = "agent-cockpit"
 -- overlay-layout 이 있으면 스택 자리를 묻고, 없으면 예전처럼 Shortcuts 아래를 직접 찾는다.
@@ -417,7 +417,6 @@ local function handleEvent(params)
     local e = sessions[key] or { key = key, createdAt = now() }
     if e.state ~= state then
       e.stateSince = now()
-      if state == "waiting" then userHidden = false end   -- 확인이 필요한 세션이 생기면 다시 보인다
     end
     e.state = (STATE_ORDER[state] and state) or "done"
     e.project = params.project or e.project or "?"
@@ -468,12 +467,12 @@ end
 
 -- overlay-all(모든 패널 숨김/표시)용. toggleOverlay 와 같은 상태 전이를 alert 없이 방향을 정해 수행한다.
 function M.hideOverlay()
+  userHidden = true; pinned = false
   if canvas and canvas:isShowing() then
-    userHidden = true; pinned = false
     canvas:hide()
-    saveState()
     layoutSchedule()
   end
+  saveState()
 end
 
 function M.showOverlay()

@@ -112,6 +112,7 @@ fi
 # ============================================================
 alias codex-yolo='codex --dangerously-bypass-approvals-and-sandbox'
 alias cy='codex --dangerously-bypass-approvals-and-sandbox'
+alias cynd='codex --dangerously-bypass-approvals-and-sandbox --no-daemon'
 
 # ============================================================
 # ghostty
@@ -159,6 +160,7 @@ if [[ "$TERM_PROGRAM" == "kiro" ]] && command -v kiro-cli >/dev/null 2>&1 && com
 fi
 alias p='cd ~/project'
 alias pv='cd ~/private'
+alias aw="cd ~/project/agentic-workspace"
 
 # ============================================================
 # nvm — Node.js 버전 관리자
@@ -197,6 +199,11 @@ fi
 # Obsidian Vault — Hermes 최종 문서 정본
 # ============================================================
 export OBSIDIAN_VAULT_PATH="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/yoophi"
+
+# UTC timestamp + random suffix for short, time-sortable IDs.
+timeid() {
+  echo "$(date -u +%y%m%d%H%M%S)-$(openssl rand -hex 4)"
+}
 
 # Kiro CLI post block. Keep at the bottom of this file.
 if command -v kiro-cli >/dev/null 2>&1 && [[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh" ]]; then

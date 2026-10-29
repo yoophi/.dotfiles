@@ -26,5 +26,37 @@
 ## 작업 완료 알림 (기본 규칙)
 - 모든 프로젝트에서 개별 작업의 구현 및 필요한 검증을 완료할 때마다 `https://ntfy.sh/yoophi` 채널로 완료 푸시 메시지를 발송한다.
 - 메시지에는 간결한 완료 요약과, 해당하는 경우 프로젝트명 및 이슈 번호를 포함한다. 비밀값이나 민감한 작업 내용은 보내지 않는다.
+- ntfy 메시지 발송 시 `Title`, `Priority`, `Tags` 헤더와 메시지 본문(`body`)을 모두 명시한다. `Tags`에는 반드시 해당 프로젝트명과 Codex 를 포함한다.
+- 일반 완료 알림은 `Priority: default`를 사용하고, `Title`에는 프로젝트명과 완료 내용을 간결하게 적는다. 본문에는 완료 요약과 해당하는 경우 이슈 번호를 포함한다.
+- 발송 예시:
+  ```sh
+  curl --fail-with-body \
+    -H "Title: box.md task completed" \
+    -H "Priority: default" \
+    -H "Tags: box.md,codex,white_check_mark" \
+    -d "box.md: 작업 구현 및 필요한 검증 완료 (gh-123)." \
+    https://ntfy.sh/yoophi
+  ```
 - 미완료 작업이나 진행 상황을 완료로 알리지 않는다. 발송 실패는 사용자에게 명시적으로 보고한다.
 - 사용자가 명시적으로 요청한 기본 동작이므로 매번 발송 승인을 다시 묻지 않는다.
+
+<!-- td-agent-instructions:start -->
+<!-- td-agent-instructions:version=3 -->
+
+## Working with td
+
+td keeps task context durable across sessions. In a new context, run `td usage --new-session -q` to see current work.
+
+Use your judgment about how much tracking a task needs. For substantive work: `td start <id>`, record progress with `td log`, hand off with `td handoff <id>`, then `td review <id>`.
+
+Closing needs a review. Say who did it (default trusted mode; delegated/strict allow only the first):
+
+- independent session: `td approve <id> --reason "..."`
+- a sub-agent: `td approve <id> --reviewed-by "<who>"`
+- you: `td approve <id> --self-review --reason "..."`
+
+Prefer a reviewer with its own `TD_CONTEXT_ID`; never name one who did not review.
+
+Run `td usage` or `td <command> --help`.
+
+<!-- td-agent-instructions:end -->
