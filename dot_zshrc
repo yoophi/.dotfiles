@@ -113,6 +113,7 @@ fi
 alias codex-yolo='codex --dangerously-bypass-approvals-and-sandbox'
 alias cy='codex --dangerously-bypass-approvals-and-sandbox'
 alias cynd='codex --no-daemon --dangerously-bypass-approvals-and-sandbox'
+alias pcy='codex --dangerously-bypass-approvals-and-sandbox resume --last -C ~/project'
 
 # ============================================================
 # ghostty
