@@ -88,3 +88,11 @@ Prefer a reviewer with its own `TD_CONTEXT_ID`; never name one who did not revie
 Run `td usage` or `td <command> --help`.
 
 <!-- td-agent-instructions:end -->
+
+## Archify explainer
+[archify explainer: proactive] Make an Archify explainer page, unasked, for explanations, comparisons, decisions, diagnoses, reviews and plans that need a table, steps or several sections.
+
+- 표·단계·여러 섹션이 필요한 설명·비교·결정·진단·리뷰·계획은 요청이 없어도 `archify` skill 로 explainer 페이지를 함께 만든다. 이 규칙을 끄려면 위 `[archify explainer: proactive]` 줄을 지운다.
+- 설치 상태: `~/.agents/skills/archify` 에 설치돼 있고 `~/.claude/skills/archify` 가 그곳을 가리키는 심볼릭 링크다. 설치 출처는 `~/.agents/.skill-lock.json` 에 기록돼 있다(source `tt-a1i/archify`, 3.2.0).
+- 새 환경에 설치: `npx skills add tt-a1i/archify -g` (출처 https://github.com/tt-a1i/archify). 설치 후 `node ~/.claude/skills/archify/bin/archify.mjs doctor` 로 확인한다(Node 18 이상 필요).
+- 업데이트: `npx skills update archify -g`. `finalize` 결과에 업데이트 알림이 나오면 사용자에게 알리기만 하고, 설치·업데이트는 사용자가 요청할 때만 한다.
